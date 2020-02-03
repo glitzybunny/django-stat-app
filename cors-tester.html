@@ -1,0 +1,56 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>CORS tester</title>
+
+    <!-- For AJAX -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+
+</head>
+
+<body>
+    <h1>Open your console</h1>
+
+    <script>
+
+        // To test CORS.
+        // 1) Specify your endpoint into variable(optional) or put it as an argument
+        //      testCors('http://google.com');
+        // 2) Open this file in your browser. Open console and check it out.
+
+        const localhost_all_url = "http:localhost:8000/api/users/";
+        const localhost_user_url = "http:localhost:8000/api/users/966/";
+        const default_google_url = "http://google.com";
+        // Put your URL variable here
+
+        //
+
+        function testCors(endpoint = default_google_url, dataType = 'json') {
+            console.log(`URL: ${endpoint} + datatype: ${dataType}`);
+            console.log("Trying to make ajax request to the url which will require CORS enabled");
+
+            $.ajax({
+                dataType: dataType,
+                url: endpoint,
+                success: function (data) {
+                    console.log("Success");
+                    console.log(data);
+                }
+            });
+        }
+
+        // Tests our Django's API for one User
+        testCors(localhost_user_url);
+
+        // Tests our Django's API for all Users
+        testCors(localhost_all_url);
+
+
+    </script>
+
+</body>
+
+</html>

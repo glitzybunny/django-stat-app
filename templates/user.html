@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+<style>
+    .container {
+        padding-block: 20px;
+    }
+
+    #date_range_clicksChart,
+    #date_range_viewsChart {
+        margin-inline: 100px;
+    }
+
+    #clicksChart,
+    #viewsChart {
+        max-width: 400px;
+        max-height: 400px;
+    }
+
+    .charts {
+        display: flex;
+        justify-content: space-between;
+    }
+</style>
+
+{% endblock extra_head %}
+
+{% block content %}
+<div class="container">
+    <div class='charts'>
+
+        <div>
+            <input id='date_range_clicksChart' type="text" name="daterange" value="" />
+            <canvas id="clicksChart" width="400" height="400"></canvas>
+        </div>
+
+        <div>
+            <input id='date_range_viewsChart' type="text" name="daterange" value="" />
+            <canvas id="viewsChart" width="400" height="400"></canvas>
+        </div>
+
+    </div>
+
+</div>
+<script>
+
+    // Charts & Chart JS objects
+    let ctx1 = document.getElementById('clicksChart').getContext('2d');
+    let ctx2 = document.getElementById('viewsChart').getContext('2d');
+
+    let clicksChart = new Chart(ctx1, {
+        type: 'line',
+        data: {
+            // property matchs Statistic model field. Property for Django Views
+            view_name: 'clicks',
+            labels: [],
+            datasets: [{
+                label: 'Clicks',
+                data: [],
+                backgroundColor: 'lightcoral',
+                borderWidth: 0
+            }]
+        },
+        options: {
+            title: {
+                display: true,
+                text: "Clicks per week",
+                fontSize: 25,
+            },
+
+            legend: {
+                display: false,
+                position: 'right'
+            },
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+            }
+        }
+    });
+
+    let viewsChart = new Chart(ctx2, {
+        type: 'line',
+        data: {
+            // property matchs Statistic model field. Property for Django Views
+            view_name: 'page_views',
+            labels: [],
+            datasets: [{
+                label: 'Views',
+                data: [],
+                backgroundColor: 'lightblue',
+                borderWidth: 0
+            }]
+        },
+        options: {
+            title: {
+                display: true,
+                text: "Views per week",
+                fontSize: 25,
+            },
+
+            legend: {
+                display: false,
+                position: 'right'
+            },
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+            }
+        }
+    });
+
+
+    // Updates a specified chart
+    // Arguments:
+    //       chart - Chart.js object
+    //       labels - labels for the chart
+    //       values - values for the chart
+    function updateChart(chart, labels, values) {
+        chart.data.labels = labels;
+        chart.data.datasets[0].data = values;
+        chart.update(0);
+    }
+
+
+    // Returns an object with current week date range. It is used for default chart values(current week)
+    function getCurrentWeek() {
+        const today = moment();
+        const from_date = moment(today).weekday(1).format('YYYY-MM-DD').toString();
+        const to_date = moment(today).weekday(7).format('YYYY-MM-DD').toString();
+
+        return {
+            start: from_date,
+            end: to_date,
+        }
+    }
+
+    let { start, end } = getCurrentWeek();
+    let splited_path = window.location.toString().split('users');
+
+    // Fetches User data from User API
+    // Arguments:
+    //      chart - Chart Js object
+    //      start - starting of date range
+    //      end - ending of date range
+    function connectUserAPI(chart, start, end) {
+        let user_endpoint = `${splited_path[0]}api/users${splited_path[1]}`;
+
+        fetch(user_endpoint)
+            .then((response) => response.json())
+            .then(function (data) {
+                connectChartDataAPI(chart, data['id'], start, end)
+            })
+            .catch(function (error) {
+                console.log(error);
+            })
+    }
+
+    // Default charts for current week
+    connectUserAPI(clicksChart, start, end);
+    connectUserAPI(viewsChart, start, end);
+
+    // Fetches Chart data
+    function connectChartDataAPI(chart, uid, start, end) {
+        let chart_endpoint = `${splited_path[0]}get_chart_data/?uid=${uid}&start=${start}&end=${end}&chart=${chart.data.view_name}`;
+
+        fetch(chart_endpoint)
+            .then((response) => response.json())
+            .then(function (data) {
+                updateChart(chart, data.labels, data.values);
+            })
+            .catch(function (error) {
+                console.log(error);
+            })
+    }
+
+    // Datepicker Range input for the clicks  chart
+    $('#date_range_clicksChart').daterangepicker({ opens: 'left' }, function (start, end, label) {
+        connectUserAPI(clicksChart, start.format('YYYY-MM-DD'), end.format('YYYY-MM-DD'))
+    });
+
+    // Datepicker Range input for the views chart
+    $('#date_range_viewsChart').daterangepicker({ opens: 'left' }, function (start, end, label) {
+        connectUserAPI(viewsChart, start.format('YYYY-MM-DD'), end.format('YYYY-MM-DD'))
+    });
+
+</script>
+{% endblock content %}

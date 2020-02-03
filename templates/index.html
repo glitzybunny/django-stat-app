@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .table-row {
+        cursor: pointer;
+    }
+
+    ul {
+        display: flex;
+        justify-content: center;
+    }
+</style>
+
+
+<div class="container">
+    <h2 class='text-center'>Hello by index</h2>
+
+    <!-- Table -->
+    <table class='table table-bordered table-condensed table-striped table-hover'>
+        <th>Id</th>
+        <th>First name</th>
+        <th>Last name</th>
+        <th>Email</th>
+        <th>Gender</th>
+        <th>IP</th>
+        <th>Total clicks</th>
+        <th>Total page views</th>
+    </table>
+
+    <!-- Pagination  -->
+    <ul class="text-center pagination">
+        <li id='page-previous' class="page-item page-link">Previous</li>
+        <li id='page-next' class="page-item page-link">Next</li>
+    </ul>
+</div>
+
+<script>
+
+    $(document).ready(function ($) {
+        const page_next = $("#page-next");
+        const page_previous = $("#page-previous");
+
+        const table_header = $("th").parent();
+        const table = $('tbody');
+
+        class Paginator {
+            current_page = 1;
+
+            next_page() {
+                this.current_page++
+                connectAPI(this.current_page);
+            }
+            previous_page() {
+                this.current_page--
+                connectAPI(this.current_page);
+            }
+
+
+        }
+
+        let paginator = new Paginator();
+
+        // Paginator events
+        page_next.click(function () {
+            paginator.next_page();
+        });
+
+        page_previous.click(function () {
+            paginator.previous_page();
+        });
+
+        // Fetchs page with users through API
+        function connectAPI(page) {
+            endpoint = page ? `api/users?page=${page}` : 'api/users';
+
+            fetch(endpoint)
+                .then((response) => response.json())
+                .then(function (data) {
+                    // Create and append the li's to the ul
+                    console.log(data)
+                    adjustContent(data);
+                })
+                .catch(function (error) {
+                    console.log(error)
+                });
+        };
+
+        function adjustContent(objects) {
+            $('.table-row').fadeOut();
+
+            // If JSON response is empty so returns an empty table
+            if (jQuery.isEmptyObject(objects)) {
+                emptyTable();
+                return;
+            }
+
+            // Goes through all objects to insert each into the table
+            for (obj in objects) {
+                insertInTable(objects[obj]);
+            }
+        }
+        connectAPI(paginator.current_page);
+
+        // Inserts an obj raw into the table
+        function insertInTable(obj) {
+            let content = `<tr class="table-row" style="cursor:pointer;" \
+                            onclick="location.href='/users/${obj.id}'">`;
+            for (key in obj) {
+                content += `<td>${obj[key]}</td>`;
+            }
+            content += '</tr>';
+            table.append(content);
+
+            return content
+        }
+        // Renders an empty table
+        function emptyTable() {
+            $('.table-row').fadeOut();
+            table.append(`<h1>The page is empty</h1>`);
+        }
+
+    });
+
+</script>
+
+{% endblock content %}
