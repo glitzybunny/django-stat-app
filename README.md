@@ -4,10 +4,9 @@
 2. **pip install -r requirements.txt**
 3. Create the MYSQL DB conf file( take a look to the instance of DB conf file below). 
 4. Specify an absolute path to your DB conf file into <span style="color:lightgreen">DATABASE_CONF_PATH</span> variable in settings.py
-5. Make migrations. **python manage.py makemigrations**
-6. Migrate. **python manage.py migrate** 
-7. Run Django built in webserver. **python manage.py runserver**
-8. It works now! Check it out on **localhost:8000**
+5. Migrate. **python manage.py migrate** 
+6. Run Django built in webserver. **python manage.py runserver**
+7. It works now! Check it out on **localhost:8000**
 
 
 **E.g. of DB conf file and an absolute path to the conf file:** 
